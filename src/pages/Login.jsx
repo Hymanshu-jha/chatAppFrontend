@@ -10,6 +10,8 @@ import './css/auth.css'
 
 
 
+const baseURL = import.meta.env.VITE_API_URL;
+
 
 const Login = () => {
 
@@ -31,7 +33,7 @@ const Login = () => {
        const formData = new FormData(e.target);
 
        try {
-        const res = await fetch('http://localhost:8080/api/v1/user/signin', {
+        const res = await fetch(`${baseURL}/api/v1/user/signin`, {
            method: "POST",
            body: formData,
            credentials: 'include',

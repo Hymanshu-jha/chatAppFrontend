@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getGlobalSocketRef } from './ChatPage';
 import './css/CreateGroupPage.css';
 
-
+const baseURL = import.meta.env.VITE_API_URL;
 
 
 export const CreateGroupPage = () => {
@@ -46,7 +46,7 @@ export const CreateGroupPage = () => {
       setSearchError('');
 
       try {
-        const res = await fetch(`http://localhost:8080/api/v1/user/getUserList/${encodeURIComponent(name.trim())}`, {
+        const res = await fetch(`${baseURL}/api/v1/user/getUserList/${encodeURIComponent(name.trim())}`, {
           credentials: 'include'
         });
 

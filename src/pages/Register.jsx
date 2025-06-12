@@ -5,6 +5,9 @@ import { useNavigate } from "react-router-dom";
 import './css/auth.css'
 
 
+const baseURL = import.meta.env.VITE_API_URL;
+
+
 
 export default function Register() {
 
@@ -15,7 +18,7 @@ const handleSubmit = async (e) => {
   const formData = new FormData(e.target);
 
   try {
-    const res = await fetch("http://localhost:8080/api/v1/user/signup", {
+    const res = await fetch(`${baseURL}/api/v1/user/signup`, {
       method: "POST",
       body: formData,
       credentials: 'include'

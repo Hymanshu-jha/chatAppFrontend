@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { setLogin, logout } from '../redux/features/users/loginSlice';
 import LoadingPage from '../pages/LoadingPage';
+const baseURL = import.meta.env.VITE_API_URL;
 
 // Icons
 import { AiOutlineHome, AiOutlineLogout, AiOutlineLogin, AiOutlineUserAdd } from 'react-icons/ai';
@@ -16,7 +17,7 @@ export const Navbar = () => {
   const { isLoggedIn, loading } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/v1/user/refresh', {
+    fetch(`${baseURL}/api/v1/user/refresh`, {
       credentials: 'include',
     })
       .then((res) => res.json())
@@ -40,7 +41,7 @@ export const Navbar = () => {
 
   const handleClick = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/v1/user/logout', {
+      const res = await fetch(`${baseURL}/api/v1/user/logout`, {
         method: 'POST',
         credentials: 'include',
       });

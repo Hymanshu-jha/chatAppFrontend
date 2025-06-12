@@ -1,9 +1,13 @@
+const wsURL = import.meta.env.VITE_WS_API_URL;
+
 let socket = null;
+
+
 
 // Fix: Return the socket instance
 export const socketConnect = (token) => {
   if(!socket || socket?.readyState === WebSocket?.CLOSED) {
-    socket = new WebSocket(`ws://localhost:8080`);
+    socket = new WebSocket(`${wsURL}`);
   }
   return socket; // Add this return statement
 };

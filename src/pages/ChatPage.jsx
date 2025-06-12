@@ -15,6 +15,7 @@ import {
  } from '../Websocket/WebSocketHandlers';
 import Kanban from './kanban/Kanban';
 
+const baseURL = import.meta.env.VITE_API_URL;
  
 let globalSocketRef = null;
 
@@ -92,7 +93,7 @@ export default function ChatPage() {
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const res = await fetch('http://localhost:8080/api/v1/chat/rooms', {
+        const res = await fetch(`${baseURL}/api/v1/chat/rooms`, {
           credentials: 'include',
         });
 
@@ -128,7 +129,7 @@ useEffect(() => {
 
   const fetchTokenAndConnect = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/v1/user/refresh', {
+      const res = await fetch(`${baseURL}/api/v1/user/refresh`, {
         credentials: 'include',
       });
 
@@ -192,7 +193,7 @@ useEffect(() => {
     const fetchMessages = async () => {
       console.log('message fetching started...');
       try {
-        const res = await fetch(`http://localhost:8080/api/v1/chat/messages/${selectedRoomRef.current._id}`, {
+        const res = await fetch(`${baseURL}/api/v1/chat/messages/${selectedRoomRef.current._id}`, {
           credentials: 'include',
           signal: controller.signal,
         });
@@ -336,7 +337,7 @@ useEffect(() => {
     if (!name) return;
 
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/user/getUserList/${name}`, {
+      const res = await fetch(`${baseURL}/v1/user/getUserList/${name}`, {
         credentials: 'include'
       });
 
