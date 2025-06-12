@@ -13,7 +13,7 @@ import {
   WebSocketCloseHandler,
   WebSocketErrorHandler,
  } from '../Websocket/WebSocketHandlers';
-import Kanban from './kanban/Kanban';
+
 
 const baseURL = import.meta.env.VITE_API_URL;
  
