@@ -1,0 +1,38 @@
+/* LoadingPage.css */
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #2a2929; /* black background */
+  color: #198dc7; /* bright blue text */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.spinner {
+  border: 8px solid #000000;
+  border-top: 8px solid #ffffff;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  animation: spin 1.2s linear infinite;
+  margin-bottom: 20px;
+}
+
+.loading-text {
+  font-size: 1.5rem;
+  color: #de0c52;
+  animation: fade 2s ease-in-out infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fade {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

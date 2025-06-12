@@ -1,0 +1,124 @@
+/* Global styling */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to bottom right, #e0f7fa, #ffffff);
+  margin: 0;
+  padding: 0;
+}
+
+/* Container styling */
+.auth-container {
+  max-width: 420px;
+  margin: 4rem auto;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 2rem;
+  border-top: 8px solid #007bff;
+  transition: all 0.3s ease-in-out;
+}
+
+.auth-container:hover {
+  transform: translateY(-4px);
+}
+
+/* Heading */
+.auth-container h2 {
+  text-align: center;
+  color: #007bff;
+  margin-bottom: 1.5rem;
+}
+
+/* Label styling */
+.auth-container label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Input styling */
+.auth-container input[type="text"],
+.auth-container input[type="email"],
+.auth-container input[type="password"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border 0.2s;
+}
+
+.auth-container input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Button styling */
+.auth-container button {
+  width: 100%;
+  padding: 0.75rem;
+  background: #28a745;
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.auth-container button:hover {
+  background: #218838;
+}
+
+/* Message styling */
+.auth-message {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-left: 4px solid red;
+  background-color: #ffe6e6;
+  color: #c0392b;
+  font-weight: bold;
+}
+
+/* Success info */
+.auth-message.success {
+  background-color: #e6ffed;
+  border-left-color: #28a745;
+  color: #2e7d32;
+}
+/* Container for icon + input */
+.input-icon {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+/* Style for the icon */
+.input-icon i {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  color: #007bff;
+  pointer-events: none;
+}
+
+/* Input adjusted to leave room for icon */
+.input-icon input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  padding-left: 2.5rem; /* space for the icon */
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border 0.2s;
+}
+
+.input-icon input:focus {
+  border-color: #007bff;
+  outline: none;
+}

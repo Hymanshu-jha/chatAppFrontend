@@ -1,0 +1,100 @@
+/* Navbar container */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #007bff 0%, #0f882b 100%);
+  padding: 0.8rem 2rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  border-radius: 0 0 10px 10px;
+  color: white;
+}
+
+/* Nav Links (Home, ChatPage) */
+.nav-links,
+.auth-links {
+  list-style: none;
+  display: flex;
+  gap: 1.8rem;
+  align-items: center;
+  padding-left: 0;
+  margin: 0;
+}
+
+/* Base link styles */
+.nav-link,
+.auth-link {
+  text-decoration: none;
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  color: white;
+  user-select: none;
+  cursor: pointer;
+}
+
+/* Icons styling */
+.icon {
+  font-size: 1.3rem;
+}
+
+/* Nav links hover & active */
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+  color: #e0e0e0;
+}
+
+.nav-link.active-link {
+  background-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+}
+
+/* Auth links hover */
+.auth-link:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+  color: #e0e0e0;
+}
+
+/* Logout link special color */
+.logout-link {
+  background-color: rgba(255, 0, 0, 0.7);
+  transition: background-color 0.3s ease;
+}
+
+.logout-link:hover {
+  background-color: rgba(255, 0, 0, 0.9);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .navbar {
+    flex-direction: column;
+    gap: 0.8rem;
+    padding: 1rem;
+  }
+  .nav-links,
+  .auth-links {
+    gap: 1rem;
+  }
+  .nav-link,
+  .auth-link {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+  .icon {
+    font-size: 1.1rem;
+  }
+}
+
+
+
+
