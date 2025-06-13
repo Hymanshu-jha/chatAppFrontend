@@ -337,7 +337,7 @@ useEffect(() => {
     if (!name) return;
 
     try {
-      const res = await fetch(`${baseURL}/v1/user/getUserList/${name}`, {
+      const res = await fetch(`${baseURL}/api/v1/user/getUserList/${name}`, {
         credentials: 'include'
       });
 
