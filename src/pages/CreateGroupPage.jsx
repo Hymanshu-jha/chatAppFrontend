@@ -1,11 +1,15 @@
+// Converted CreateGroupPage with Tailwind CSS
 import React, { useEffect, useState } from 'react';
-import { getGlobalSocketRef } from './ChatPage';
-import './css/CreateGroupPage.css';
+import { useSocket } from '../context/WebSocketContext';
+
+
 
 const baseURL = import.meta.env.VITE_API_URL;
 
-
 export const CreateGroupPage = () => {
+
+  const { getGlobalSocketRef } = useSocket();
+
   const [groupName, setGroupName] = useState('');
   const [groupDescription, setGroupDescription] = useState('');
   const [selectedContacts, setSelectedContacts] = useState([]);
@@ -14,30 +18,22 @@ export const CreateGroupPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
 
-  // Filter contacts based on search input
   const filteredContacts = availableContacts.filter(contact =>
     contact.name?.toLowerCase().includes(name.toLowerCase()) ||
     contact.emailid?.toLowerCase().includes(name.toLowerCase()) ||
     contact._id?.toLowerCase().includes(name.toLowerCase())
   );
 
-  // Handle contact selection/deselection
   const handleContactSelect = (contact) => {
     const isSelected = selectedContacts.find(c => c._id === contact._id);
-    
-    if (isSelected) {
-      //setSelectedContacts(selectedContacts.filter(c => c._id !== contact._id));
-    } else {
+    if (!isSelected) {
       setSelectedContacts([...selectedContacts, contact]);
     }
   };
 
-  // Search for users
   useEffect(() => {
     const handleSearch = async () => {
-      // Don't search if name is empty or too short
       if (!name || name.trim().length < 2) {
-        // setAvailableContacts([]);
         setSearchError('');
         return;
       }
@@ -53,40 +49,26 @@ export const CreateGroupPage = () => {
         if (!res.ok) {
           if (res.status === 404) {
             setSearchError('No users found with this search term');
-            // setAvailableContacts([]);
             return;
           }
           throw new Error(`HTTP error! status: ${res.status}`);
         }
 
         const data = await res.json();
-
-        if (!data) {
-          console.log('Error while parsing the search query fetched result...');
-          setSearchError('Failed to parse search results');
-          // setAvailableContacts([]);
-          return;
-        }
-
-        // Handle different possible response structures
         const userList = data?.userList || data?.users || data || [];
 
         if (!Array.isArray(userList)) {
-          console.log('Invalid response format - userList is not an array');
           setSearchError('Invalid response format');
-          // setAvailableContacts([]);
           return;
         }
 
         if (userList.length === 0) {
-          console.log('No users found with this search term...');
           setSearchError('No users found');
         }
 
         setAvailableContacts(userList);
 
       } catch (error) {
-        console.log('Error while fetching search query user on group page...', error.message);
         setSearchError('Failed to search users. Please try again.');
         setAvailableContacts([]);
       } finally {
@@ -94,59 +76,33 @@ export const CreateGroupPage = () => {
       }
     };
 
-    // Debounce the search to avoid too many API calls
     const timeoutId = setTimeout(handleSearch, 300);
     return () => clearTimeout(timeoutId);
   }, [name]);
 
-  
-
   const handleCreateGroup = (e) => {
     e.preventDefault();
-    
-    if (!groupName.trim()) {
-      alert('Please enter a group name');
-      return;
-    }
-    
-    if (selectedContacts.length === 0) {
-      alert('Please select at least one contact');
-      return;
-    }
 
+    if (!groupName.trim()) return alert('Please enter a group name');
+    if (selectedContacts.length === 0) return alert('Please select at least one contact');
 
-    // Send group creation data via websocket
     const socket = getGlobalSocketRef();
 
-    if (!socket) {
-      console.log('socket is null in groupcreate page');
-      alert('Connection error. Please try again.');
-      return;
-    }
+    if (!socket || socket.readyState !== WebSocket.OPEN) return alert('Connection error. Please try again.');
 
-    if (socket?.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({
-        type: 'group_create', // Add message type for better handling
-        name: groupName,
-        description: groupDescription,
-        members: selectedContacts
-      }));
-    } else {
-      alert('Connection not ready. Please try again.');
-      return;
-    }
+    socket.send(JSON.stringify({
+      type: 'group_create',
+      name: groupName,
+      description: groupDescription,
+      members: selectedContacts
+    }));
 
-    console.log('group creation details sent successfully to backend server via websockets');
-    
-    // Reset form
     setGroupName('');
     setGroupDescription('');
     setSelectedContacts([]);
     setName('');
     setAvailableContacts([]);
     setSearchError('');
-    
-    console.log('Group created successfully!');
   };
 
   const removeSelectedContact = (contactId) => {
@@ -154,67 +110,42 @@ export const CreateGroupPage = () => {
   };
 
   return (
-    <div className="create-group-container">
-      <div className="create-group-header">
-        <h2>Create New Group</h2>
-        <p>Start a conversation with multiple people</p>
+    <div className="p-4 space-y-6 max-w-3xl mx-auto">
+      <div className="border-b pb-4">
+        <h2 className="text-2xl font-semibold text-green-800">Create New Group</h2>
+        <p className="text-sm text-green-600">Start a conversation with multiple people</p>
       </div>
 
-      <form onSubmit={handleCreateGroup} className="group-form">
-        <div className="form-section">
-          <h3>Group Information</h3>
-          
-          <div className="form-group">
-            <label htmlFor="groupName">Group Name *</label>
-            <input
-              id="groupName"
-              type="text"
-              placeholder="Enter group name..."
-              value={groupName}
-              onChange={(e) => setGroupName(e.target.value)}
-              className="form-input"
-              maxLength={50}
-            />
-            <small className="char-count">{groupName.length}/50</small>
+      <form onSubmit={handleCreateGroup} className="space-y-6">
+        <div className="bg-white shadow rounded-lg p-4 space-y-4 border-l-4 border-green-300">
+          <h3 className="text-lg font-semibold text-green-800">Group Information</h3>
+
+          <div>
+            <label className="block text-sm font-medium text-green-800">Group Name *</label>
+            <input type="text" className="mt-1 w-full border border-green-300 rounded-md px-3 py-2 focus:outline-none focus:ring focus:ring-green-200" maxLength={50} value={groupName} onChange={(e) => setGroupName(e.target.value)} />
+            <p className="text-xs text-right text-green-600">{groupName.length}/50</p>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="groupDescription">Description (Optional)</label>
-            <textarea
-              id="groupDescription"
-              placeholder="What's the group about?"
-              value={groupDescription}
-              onChange={(e) => setGroupDescription(e.target.value)}
-              className="form-textarea"
-              rows={3}
-              maxLength={200}
-            />
-            <small className="char-count">{groupDescription.length}/200</small>
+          <div>
+            <label className="block text-sm font-medium text-green-800">Description (Optional)</label>
+            <textarea className="mt-1 w-full border border-green-300 rounded-md px-3 py-2 focus:outline-none focus:ring focus:ring-green-200" rows={3} maxLength={200} value={groupDescription} onChange={(e) => setGroupDescription(e.target.value)} />
+            <p className="text-xs text-right text-green-600">{groupDescription.length}/200</p>
           </div>
         </div>
 
-        <div className="form-section">
-          <h3>Add Members ({selectedContacts.length})</h3>
-          
+        <div className="bg-white shadow rounded-lg p-4 space-y-4 border-l-4 border-green-300">
+          <h3 className="text-lg font-semibold text-green-800">Add Members ({selectedContacts.length})</h3>
+
           {selectedContacts.length > 0 && (
-            <div className="selected-contacts">
-              <h4>Selected Members:</h4>
-              <div className="selected-list">
+            <div>
+              <h4 className="text-sm font-medium text-green-800 mb-2">Selected Members:</h4>
+              <div className="flex flex-wrap gap-2">
                 {selectedContacts.map(contact => (
-                  <div key={contact._id} className="selected-contact">
-                    <div className="selected-contact-avatar">
-                      {contact.name?.charAt(0).toUpperCase() || '?'}
-                    </div>
-                    <span className="selected-contact-name">{contact.name}</span>
-                    <button
-                      type="button"
-                      className="remove-contact-btn"
-                      onClick={() => removeSelectedContact(contact._id)}
-                      title="Remove from group"
-                    >
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                      </svg>
+                  <div key={contact._id} className="flex items-center bg-gradient-to-r from-green-700 to-green-300 text-white px-3 py-1 rounded-full text-sm">
+                    <span className="mr-2 font-bold bg-white/20 px-2 py-1 rounded-full text-xs">{contact.name?.charAt(0).toUpperCase() || '?'}</span>
+                    <span className="truncate max-w-[100px]">{contact.name}</span>
+                    <button onClick={() => removeSelectedContact(contact._id)} className="ml-2 text-white hover:bg-white/20 rounded-full p-1">
+                      ×
                     </button>
                   </div>
                 ))}
@@ -222,79 +153,52 @@ export const CreateGroupPage = () => {
             </div>
           )}
 
-          <div className="contact-search">
-            <input
-              type="text"
-              placeholder="Search contacts (min 2 characters)..."
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="contact-search-input"
-            />
-            {isLoading && <div className="search-loading">Searching...</div>}
-            {searchError && <div className="search-error">{searchError}</div>}
+          <div>
+            <input type="text" placeholder="Search contacts (min 2 characters)..." className="w-full border border-green-300 rounded-full px-4 py-2 focus:outline-none focus:ring focus:ring-green-200" value={name} onChange={(e) => setName(e.target.value)} />
+            {isLoading && <div className="text-sm text-green-600 mt-2">Searching...</div>}
+            {searchError && <div className="text-sm text-red-500 mt-2">{searchError}</div>}
           </div>
 
-          <div className="available-contacts">
+          <div className="max-h-64 overflow-y-auto">
             {name.trim().length < 2 ? (
-              <div className="no-contacts">
-                <p>Type at least 2 characters to search for contacts</p>
-              </div>
+              <p className="text-center text-green-600 opacity-70">Type at least 2 characters to search for contacts</p>
             ) : filteredContacts.length === 0 && !isLoading ? (
-              <div className="no-contacts">
-                <p>No contacts found</p>
-              </div>
+              <p className="text-center text-green-600 opacity-70">No contacts found</p>
             ) : (
-              <div className="contacts-grid">
-                {filteredContacts.map(contact => (
-                  <div
-                    key={contact._id}
-                    className={`contact-card ${selectedContacts.find(c => c._id === contact._id) ? 'selected' : ''}`}
-                    onClick={() => handleContactSelect(contact)}
-                  >
-                    <div className="contact-card-avatar">
-                      {contact.name?.charAt(0).toUpperCase() || '?'}
-                    </div>
-                    <div className="contact-card-info">
-                      <div className="contact-card-name">{contact.name || 'Unknown'}</div>
-                      <div className="contact-card-email">{contact.emailid || 'No email'}</div>
-                    </div>
-                    {selectedContacts.find(c => c._id === contact._id) && (
-                      <div className="contact-selected-indicator">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                        </svg>
+              <div className="flex flex-col gap-2">
+                {filteredContacts.map(contact => {
+                  const isSelected = selectedContacts.find(c => c._id === contact._id);
+                  return (
+                    <div key={contact._id} onClick={() => handleContactSelect(contact)} className={`flex items-center p-3 rounded-md border cursor-pointer transition-all ${isSelected ? 'bg-green-100 border-green-400' : 'bg-white border-transparent hover:border-green-300 shadow-sm'}`}>
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-r from-green-700 to-green-300 text-white flex items-center justify-center mr-3 font-bold">
+                        {contact.name?.charAt(0).toUpperCase() || '?'}
                       </div>
-                    )}
-                  </div>
-                ))}
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-green-800">{contact.name || 'Unknown'}</p>
+                        <p className="text-xs text-green-600">{contact.emailid || 'No email'}</p>
+                      </div>
+                      {isSelected && <div className="w-5 h-5 bg-green-700 text-white flex items-center justify-center rounded-full text-xs">✓</div>}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
         </div>
 
-        <div className="form-actions">
-          <button
-            type="button"
-            className="cancel-btn"
-            onClick={() => {
-              setGroupName('');
-              setGroupDescription('');
-              setSelectedContacts([]);
-              setName('');
-              setAvailableContacts([]);
-              setSearchError('');
-            }}
-          >
+        <div className="flex flex-col sm:flex-row justify-end gap-3 border-t pt-4">
+          <button type="button" onClick={() => {
+            setGroupName('');
+            setGroupDescription('');
+            setSelectedContacts([]);
+            setName('');
+            setAvailableContacts([]);
+            setSearchError('');
+          }} className="px-4 py-2 border border-green-300 text-green-700 bg-white rounded-md hover:border-green-500">
             Clear All
           </button>
-          <button
-            type="submit"
-            className="create-btn"
-            disabled={!groupName.trim() || selectedContacts.length === 0}
-          >
-            <svg className="create-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
-            </svg>
+
+          <button type="submit" disabled={!groupName.trim() || selectedContacts.length === 0} className="px-4 py-2 bg-gradient-to-r from-green-700 to-green-400 text-white rounded-md font-semibold disabled:opacity-60 disabled:cursor-not-allowed">
             Create Group
           </button>
         </div>

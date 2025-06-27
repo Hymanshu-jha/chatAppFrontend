@@ -37,6 +37,10 @@ export const WebSocketDirectMessageHandler = (data, selectedRoomRef, setRooms, s
       setMessages((prev) => [...prev, newMessage]);
     } else if (parsedData?.type === 'notification') {
       console.log('notification...handler..frontend initiated...');
+    } else if (parsedData?.type === 'delete_message') {
+      console.log('delete_message handler invoked');
+      const messageId = parsedData?.messageId;
+      setMessages((prev) => prev.filter((message) => message._id !== messageId));
     } else {
       console.log('Message not handled:', parsedData);
     }

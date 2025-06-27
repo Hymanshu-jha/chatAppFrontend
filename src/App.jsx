@@ -10,19 +10,14 @@ import Error from './pages/Errorpage';
 import Home from './pages/Home';
 import ProtectedRoute from './pages/ProtectedRoute';
 
+
 import LoadingPage from './pages/LoadingPage';
 import { Navbar } from './components/Navbar';
 
 
 
+
 function App() {
-
-
-  
-  
-
-
-
 
 
   return (
@@ -35,8 +30,8 @@ function App() {
           <Route path='/login' element={<Login />} />
           <Route path='/errorpage' element={<Error />} />
           <Route path='/loadingpage' element={<LoadingPage />} />
-{/* <Route path='/kanban' element={<Kanban />} /> */}
-          
+          {/* <Route path='/kanban' element={<Kanban />} /> */}
+     
 
          {/* Protect this route */}
           <Route

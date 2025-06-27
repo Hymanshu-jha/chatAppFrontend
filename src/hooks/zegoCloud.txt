@@ -1,0 +1,12 @@
+zegocloud:........................
+
+
+Project name - chatApp_mern
+AppID - 1661953648
+Status - Testing
+AppSign - e45f8701281df0677f628bf1174555b15dadaf0cab8b7281416b354cdefc0c61
+CallbackSecret - e45f8701281df0677f628bf1174555b1
+
+ServerSecret - 63bef13c9b410729e6581d40174a96fb
+Server URL - wss://webliveroom1661953648-api.coolzcloud.com/ws
+Secondary WebSocket server address - wss://webliveroom1661953648-api-bak.coolzcloud.com/ws

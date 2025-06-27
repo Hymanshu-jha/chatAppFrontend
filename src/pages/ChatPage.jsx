@@ -1,429 +1,75 @@
-import { useEffect, useState, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-
-import { MessageOpenBox } from '../components/MessageOpenBox'
-import { MessageRoomList } from '../components/MessageRoomList'
-import { AddContactsPage } from './AddContactsPage'
-import { CreateGroupPage } from './CreateGroupPage'
-import './css/ChatPage.css'
-import { setRoom } from '../redux/features/rooms/roomSlice';
-import { socketConnect , addWebSocketListener , removeWebSocketListener } from '../Websocket/WebsocketSetup';
-import { 
-  WebSocketDirectMessageHandler,
-  WebSocketCloseHandler,
-  WebSocketErrorHandler,
- } from '../Websocket/WebSocketHandlers';
+const baseURL = import.meta.env.VITE_API_URL; 
+// ChatPage.jsx (Refactored)
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useRooms } from '../hooks/useRooms';
+import { useMessages } from '../hooks/useMessages';
+import { useChatActions } from '../hooks/useChatActions';
+import { MessageOpenBox } from '../components/MessageOpenBox';
+import { MessageRoomList } from '../components/MessageRoomList';
+import { AddContactsPage } from './AddContactsPage';
+import { CreateGroupPage } from './CreateGroupPage';
+import { VideoCallComponent } from '../components/VideoCallComponent';
 
 
-const baseURL = import.meta.env.VITE_API_URL;
- 
-let globalSocketRef = null;
-
-
-export const getGlobalSocketRef = () => globalSocketRef? globalSocketRef : null;
-
+import { useChat } from '../context/ChatContext';
 
 export default function ChatPage() {
-  const dispatch = useDispatch();
-  
-  // Navigation state
-  const [activeTab, setActiveTab] = useState('chats');
-  
-  const [toSendMessage, setToSendMessage] = useState('');
-  const [socket, setSocket] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [isConnected, setIsConnected] = useState(false);
-  const [rooms, setRooms] = useState([]);
-  const [selectedRoomId, setSelectedRoomId] = useState(null);
-  const [selectedRoom, setSelectedRoom] = useState(null); // Add explicit selected room state
-  const [showUserSearch, setShowUserSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [foundUsers, setFoundUsers] = useState([]);
-
-
-  const [isKanban , setIsKanban] = useState(false);
-  
-  const socketRef = useRef(null);
-  const selectedRoomRef = useRef(null);
-  const receiverRef = useRef(null);
-
   const { user } = useSelector((state) => state.auth);
 
-  // Helper function to get receiver info
-  const getReceiver = (roomInfo) => {
-
-    if(roomInfo.isGroup) {
-
-      console.log(`it's a group message`);
-
-      let members = roomInfo?.members.filter(
-      (member) => member.emailid !== user?.emailid);
-
-      return members.map(member => ({
-       emailid: member.emailid,
-       name: member.name
-      }));
-    }
-      
-    
-
-    if (!roomInfo?.members || roomInfo?.members?.length !== 2 || !user?.emailid) {
-      return [{ emailid: 'unknown', name: 'Unknown User' }];
-    }
-
-    const [member1, member2] = roomInfo?.members;
-    const otherMember = (user?.emailid === member1?.emailid) ? member2 : member1;
-    console.log(`it's a direct message`);
-    return [{
-      emailid: otherMember?.emailid || 'unknown',
-      name: otherMember?.name || 'Unknown User'
-    }];
-  };
-
-  // Get current receiver info (no useEffect needed - calculate on demand)
-  const getCurrentReceiver = () => {
-    console.log('current receiver--!!->: ', selectedRoom ? getReceiver(selectedRoom) : null)
-    return selectedRoom ? getReceiver(selectedRoom) : null;
-  };
-
-
-
-
-  // Fetch all rooms
-  useEffect(() => {
-    const fetchRooms = async () => {
-      try {
-        const res = await fetch(`${baseURL}/api/v1/chat/rooms`, {
-          credentials: 'include',
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data?.message || 'Failed to fetch rooms');
-        }
-
-        if (!data?.rooms || data.rooms.length === 0) {
-          console.log('No rooms found for this user.');
-          return;
-        }
-
-        setRooms(data.rooms);
-      } catch (error) {
-        console.error('Error fetching rooms:', error.message);
-      }
-    };
-
-    fetchRooms();
-  }, []);
-
-
-
-
-// Auth and connect WebSocket
-useEffect(() => {
-
-  let messageHandler;
-  let closeHandler;
-  let errorHandler;
-
-  const fetchTokenAndConnect = async () => {
-    try {
-      const res = await fetch(`${baseURL}/api/v1/user/refresh`, {
-        credentials: 'include',
-      });
-
-      const data = await res.json();
-
-      if (data?.token) {
-        const ws = socketConnect(data.token);
-
-        socketRef.current = ws;
-        globalSocketRef = socketRef.current;
-        setSocket(ws);
-
-        ws.onopen = () => {
-          console.log('Connected to server');
-          setIsConnected(true);
-        };
-
-        messageHandler = (event) => WebSocketDirectMessageHandler(event.data, selectedRoomRef, setRooms, setMessages);
-        errorHandler = (event) => WebSocketErrorHandler(event);
-        closeHandler = () => WebSocketCloseHandler(setIsConnected);
-
-
-        // All event listeners should receive the event object:
-        addWebSocketListener('message', messageHandler);
-        addWebSocketListener('close', closeHandler); 
-        addWebSocketListener('error', errorHandler);
-
-      } else {
-        console.error('Token not received');
-      }
-    } catch (error) {
-      console.error('Error getting WebSocket token:', error);
-    }
-  };
-
-  fetchTokenAndConnect();
-
-  return () => {
-    if (socketRef.current) {
-      removeWebSocketListener('message', messageHandler);
-      removeWebSocketListener('close', closeHandler);
-      removeWebSocketListener('error', errorHandler);
-      socketRef.current.close();
-    }
-  };
-}, []);
-
-
-
-
-  // Fetch messages for selected room
-  useEffect(() => {
-    if (!selectedRoomRef?.current?._id) {
-      console.log('room id issue...', );
-      setMessages([]);
-      return;
-    }
-
-    const controller = new AbortController();
-
-    const fetchMessages = async () => {
-      console.log('message fetching started...');
-      try {
-        const res = await fetch(`${baseURL}/api/v1/chat/messages/${selectedRoomRef.current._id}`, {
-          credentials: 'include',
-          signal: controller.signal,
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data?.message || 'Error while fetching messages');
-        }
-
-        console.log('message fetched...');
-
-        setMessages(data?.messages || []);
-      } catch (error) {
-        if (error.name === 'AbortError') {
-          console.log('Fetch aborted due to room change');
-        } else {
-          console.error('Error fetching messages:', error.message);
-        }
-      }
-    };
-
-    fetchMessages();
-
-    return () => {
-      controller.abort();
-    };
-  }, [selectedRoomRef.current]);
-
-
-
-  const handleClick = (e, room) => {
-    e.preventDefault();
-
   
+  
+  
+  const chatContext = useChat();
 
-    if(selectedRoomRef?.current?._id === room?._id) return;
-    
-    if (!room?._id) {
-      console.error('Invalid room data');
-      return;
-    }
+  // Video call state
+  const [isVideoCallActive, setIsVideoCallActive] = useState(false);
+  const [videoCallRoom, setVideoCallRoom] = useState(null);
+  const [isTextChatActive, setIsTextChatActive] = useState(true);
 
-    console.log('Selecting room: ', room);
-    
-    // Clear messages first
-    //setMessages([]);
-    
-    // Update all room-related state and refs immediately
-    setSelectedRoomId(room._id);
-    setSelectedRoom(room);
-    selectedRoomRef.current = room;
-    receiverRef.current = getReceiver(room);
-    dispatch(setRoom(room));
-    
-    console.log('Room selected:', room);
-    console.log('Receiver set to:', receiverRef?.current);
+  // Data fetching hooks
+  useRooms(chatContext.setRooms);
+  useMessages(chatContext.selectedRoomRef, chatContext.setMessages);
+  
+  // Action handlers
+  const actions = useChatActions(chatContext, user);
+
+  // Video call handler
+  const handleVideoCall = async () => {
+    setIsVideoCallActive(true);
+    setIsTextChatActive(false);
+    setVideoCallRoom(chatContext.selectedRoom);
   };
 
-
-
-
-  const handleSendButton = (e) => {
-    e.preventDefault();
-
-    // Validate message
-    if (!toSendMessage?.trim()) {
-      console.warn('Cannot send: message is empty');
-      return;
-    }
-
-    // Validate WebSocket
-    if (!socketRef.current || socketRef?.current?.readyState !== WebSocket.OPEN) {
-      console.warn('Cannot send: WebSocket not connected');
-      return;
-    }
-
-    // Get current receiver (calculate fresh to avoid stale refs)
-    const currentReceiver = getCurrentReceiver();
-    const currentRoom = selectedRoom;
-
-    // Validate receiver
-    if (!currentReceiver[0]?.emailid || currentReceiver[0]?.emailid === 'unknown') {
-      console.warn('Cannot send: receiver not identified');
-      console.warn('Selected room:', currentRoom);
-      console.warn('Current receiver:', currentReceiver);
-      console.warn('User email:', user?.emailid);
-      return;
-    }
-
-    // Validate room
-    if (!currentRoom?._id) {
-      console.warn('Cannot send: no room selected');
-      return;
-    }
-
-    let messageType;
-    let to;
-
-    if(currentRoom?.isGroup) {
-      messageType = "group_message";
-      to = currentReceiver?.map((rec) => {
-        return rec?.emailid
-      });
-    } else if(!currentRoom?.isGroup) {
-      messageType = "direct_message"
-      to = [currentReceiver[0]?.emailid];
-    }
-
-
-    console.log("user.emialid:--------- ", user.emailid);
-
-    const payload = {
-      name: selectedRoomRef?.current?.roomName,
-      roomId: currentRoom._id,
-      message: toSendMessage,
-      type: messageType,
-      to,
-      sender: user
-    };
-
-    console.log('Sending message:', payload);
-    socketRef.current.send(JSON.stringify(payload));
-    // setMessages([...messages , {
-    //   roomName: name,
-    //   room: currentRoom,
-    //   message: toSendMessage,
-    //   type: "direct_message",
-    //   sender: user,
-    //   receiver: receiverRef?.current
-    // }]);
-    setToSendMessage('');
+  // Exit video call handler
+  const handleExitVideoCall = () => {
+    setIsVideoCallActive(false);
+    setIsTextChatActive(true);
+    setVideoCallRoom(null);
   };
 
-
-
-
-  const handleAddRooms = async (e) => {
-    e.preventDefault();
-
-    const name = searchQuery.trim();
-    if (!name) return;
-
-    try {
-      const res = await fetch(`${baseURL}/api/v1/user/getUserList/${name}`, {
-        credentials: 'include'
-      });
-
-      const fetchedUsersData = await res.json();
-
-      if (fetchedUsersData?.userList?.length > 0) {
-        setFoundUsers(fetchedUsersData?.userList);
-      } else {
-        setFoundUsers([]);
-        console.log('No users found');
-      }
-    } catch (error) {
-      console.error("Error fetching user list:", error);
-      setFoundUsers([]);
-    }
-  };
-
-
-
-
-
-  const handleSearchInput = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
-
-
-
-  const handleAddSearchQuery = (e, foundUser) => {
-    e.preventDefault();
-
-    if (!socketRef?.current || socketRef?.current?.readyState !== WebSocket?.OPEN) {
-      console.log('WebSocket connection error');
-      return;
-    }
-
-    if (!foundUser?.emailid) {
-      console.log('Invalid user data');
-      return;
-    }
-
-    const payload = {
-      type: "direct_message",
-      to: [foundUser?.emailid],
-      message: `Hey ${foundUser?.name}, this is ${user?.name}`,
-      purpose: "roomJoin"
-    };
-
-    console.log('Adding user to room:', payload);
-    socketRef?.current?.send(JSON.stringify(payload));
-  };
-
-
-
-  // kanban click handle
-
-
-
-
-
-  // Navigation handlers
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    
-    // Reset chat-related states when switching away from chats
-    if (tab !== 'chats') {
-      setSelectedRoomId(null);
-      setSelectedRoom(null);
-      setMessages([]);
-      selectedRoomRef.current = null;
-      receiverRef.current = null;
-    }
-  };
+  // If video call is active, render only the VideoCallComponent
+  if (isVideoCallActive) {
+    return (
+      <VideoCallComponent 
+        room={chatContext?.selectedRoomRef?.current}
+        onExitCall={handleExitVideoCall}
+      />
+    );
+  }
 
   const renderLeftPanel = () => {
-    switch (activeTab) {
+    switch (chatContext.activeTab) {
       case 'contacts':
         return (
           <AddContactsPage 
-            searchQuery={searchQuery}
-            foundUsers={foundUsers}
-            handleSearchInput={handleSearchInput}
-            handleAddRooms={handleAddRooms}
-            handleAddSearchQuery={handleAddSearchQuery}
-            setSearchQuery={setSearchQuery}
-            setFoundUsers={setFoundUsers}
+            searchQuery={chatContext.searchQuery}
+            foundUsers={chatContext.foundUsers}
+            handleSearchInput={actions.handleSearchInput}
+            handleAddRooms={actions.handleAddRooms}
+            handleAddSearchQuery={actions.handleAddSearchQuery}
+            setSearchQuery={chatContext.setSearchQuery}
+            setFoundUsers={chatContext.setFoundUsers}
           />
         );
       case 'groups':
@@ -431,160 +77,297 @@ useEffect(() => {
       case 'chats':
       default:
         return (
-          <div className="chat-room-content">
-            <div className="chat-room-header">
-              <button
-                className={`tab-btn ${!showUserSearch ? 'active' : ''}`}
-                onClick={() => setShowUserSearch(false)}
-              >
-                Rooms ({rooms.length})
+          <div className="h-full flex flex-col">
+            <div className="mb-4">
+              <button className="px-4 py-2 text-sm font-bold rounded-full bg-blue-500 text-white">
+                Rooms ({chatContext.rooms.length})
               </button>
             </div>
             <MessageRoomList
-              rooms={rooms}
-              selectedRoomId={selectedRoomId}
-              setRoomId={handleClick}
+              rooms={chatContext.rooms}
+              selectedRoomId={chatContext.selectedRoomId}
+              setRoomId={actions.handleClick}
             />
           </div>
         );
-
-
     }
   };
 
-  return (
-    
+return (
+    <div className="flex h-screen bg-gradient-to-br from-gray-900 to-black font-sans">
+      {/* Mobile Menu Button */}
+      <button
+        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-orange-600 text-white rounded-lg shadow-lg"
+        onClick={() => chatContext.setIsMobileMenuOpen(!chatContext.isMobileMenuOpen)}
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {chatContext.isMobileMenuOpen ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          )}
+        </svg>
+      </button>
 
-<>
-      <div className="chat-container">
+      {/* Mobile Overlay */}
+      {chatContext.isMobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black bg-opacity-70 z-30"
+          onClick={() => chatContext.setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Vertical Navigation Bar */}
-      <div className="vertical-nav">
-        <div className="nav-brand">
-          <h3>Chat App</h3>
+      <div className={`
+        ${chatContext.isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0 fixed md:relative z-40 
+        w-16 md:w-16 lg:w-16 xl:hover:w-48 
+        bg-gradient-to-b from-gray-900 to-black 
+        flex flex-col items-center py-4 md:py-5 border-r-2 border-orange-800 
+        transition-all duration-300 ease-in-out h-full group
+      `}>
+        <div className="mb-6 md:mb-8 text-center">
+          <h3 className="text-orange-200 text-sm md:text-base m-0 opacity-0 xl:group-hover:opacity-100 transition-opacity duration-300">
+            Chat App
+          </h3>
         </div>
-        <div className="nav-items">
+
+        <div className="flex-1 flex flex-col gap-3 md:gap-4 w-full">
           <button 
-            className={`nav-item ${activeTab === 'chats' ? 'active' : ''}`}
-            onClick={() => handleTabChange('chats')}
+            className={`flex items-center justify-start px-3 md:px-5 py-2 md:py-3 mx-1 md:mx-2 rounded-lg transition-all duration-300 relative overflow-hidden group/item ${
+              chatContext.activeTab === 'chats' 
+                ? 'bg-orange-600 text-white' 
+                : 'text-orange-300 hover:bg-orange-600/20 hover:text-orange-200'
+            }`}
+            onClick={() => actions.handleTabChange('chats')}
           >
-            <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="w-4 h-4 md:w-5 md:h-5 min-w-[16px] md:min-w-[20px] transition-transform duration-300" viewBox="0 0 24 24" fill="currentColor">
               <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
             </svg>
-            <span>Chats</span>
+            <span className="ml-3 md:ml-4 text-xs md:text-sm font-medium opacity-0 xl:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+              Chats
+            </span>
           </button>
           
           <button 
-            className={`nav-item ${activeTab === 'contacts' ? 'active' : ''}`}
-            onClick={() => handleTabChange('contacts')}
+            className={`flex items-center justify-start px-3 md:px-5 py-2 md:py-3 mx-1 md:mx-2 rounded-lg transition-all duration-300 relative overflow-hidden group/item ${
+              chatContext.activeTab === 'contacts' 
+                ? 'bg-orange-600 text-white' 
+                : 'text-orange-300 hover:bg-orange-600/20 hover:text-orange-200'
+            }`}
+            onClick={() => actions.handleTabChange('contacts')}
           >
-            <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A3.004 3.004 0 0 0 16.96 6c-.8 0-1.54.37-2.01.97L12 10.5 9.05 6.97A3.004 3.004 0 0 0 6.04 6c-1.18 0-2.25.66-2.81 1.72L1.5 16H4v6h2v-6h1.5l1.87-5.61L12 14l2.63-3.61L16.5 16H18v6h2z"/>
+            <svg className="w-4 h-4 md:w-5 md:h-5 min-w-[16px] md:min-w-[20px] transition-transform duration-300" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16 4c0-1.11.89-2 2-2s2 .89 2-2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A3.004 3.004 0 0 0 16.96 6c-.8 0-1.54.37-2.01.97L12 10.5 9.05 6.97A3.004 3.004 0 0 0 6.04 6c-1.18 0-2.25.66-2.81 1.72L1.5 16H4v6h2v-6h1.5l1.87-5.61L12 14l2.63-3.61L16.5 16H18v6h2z"/>
             </svg>
-            <span>Add Contacts</span>
+            <span className="ml-3 md:ml-4 text-xs md:text-sm font-medium opacity-0 xl:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+              Add Contacts
+            </span>
           </button>
           
           <button 
-            className={`nav-item ${activeTab === 'groups' ? 'active' : ''}`}
-            onClick={() => handleTabChange('groups')}
+            className={`flex items-center justify-start px-3 md:px-5 py-2 md:py-3 mx-1 md:mx-2 rounded-lg transition-all duration-300 relative overflow-hidden group/item ${
+              chatContext.activeTab === 'groups' 
+                ? 'bg-orange-600 text-white' 
+                : 'text-orange-300 hover:bg-orange-600/20 hover:text-orange-200'
+            }`}
+            onClick={() => actions.handleTabChange('groups')}
           >
-            <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="w-4 h-4 md:w-5 md:h-5 min-w-[16px] md:min-w-[20px] transition-transform duration-300" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
             </svg>
-            <span>Create Group</span>
+            <span className="ml-3 md:ml-4 text-xs md:text-sm font-medium opacity-0 xl:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+              Create Group
+            </span>
           </button>
-
-
-
-
-
         </div>
         
-        <div className="nav-footer">
-          <div className="user-info">
-            <div className="user-avatar">
+        <div className="mt-auto w-full px-1 md:px-2">
+          <div className="flex items-center p-1 md:p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors duration-300 cursor-pointer">
+            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-r from-orange-500 to-orange-700 flex items-center justify-center text-white font-bold text-xs">
               {user?.name?.charAt(0)?.toUpperCase() || 'U'}
             </div>
-            <div className="user-details">
-              <span className="user-name">{user?.name || 'Unknown'}</span>
-              <span className="user-status">{isConnected ? 'Online' : 'Offline'}</span>
+            <div className="ml-2 flex flex-col opacity-0 xl:group-hover:opacity-100 transition-opacity duration-300">
+              <span className="text-orange-200 text-xs font-medium truncate max-w-20 md:max-w-24">
+                {user?.name || 'Unknown'}
+              </span>
+              <span className={`text-xs ${chatContext.isConnected ? 'text-green-400' : 'text-red-400'}`}>
+                {chatContext.isConnected ? 'Online' : 'Offline'}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Left Panel - Dynamic Content */}
-      <div className="chat-room-list">
-        {renderLeftPanel()}
+      <div className={`
+        ${chatContext.isMobileMenuOpen || chatContext.selectedRoomId ? 'hidden' : 'block'}
+        ${chatContext.selectedRoomId ? 'md:block' : 'block'}
+        w-full md:w-72 lg:w-80 xl:w-96 bg-gradient-to-b from-gray-800 to-gray-900 
+        flex flex-col overflow-hidden border-r-2 border-orange-800
+        ${chatContext.selectedRoomId ? 'md:hidden lg:flex' : 'md:flex'}
+      `}>
+        <div className="p-4 md:p-5 h-full overflow-y-auto">
+          <div className="pt-12 md:pt-0">
+            {renderLeftPanel()}
+          </div>
+        </div>
       </div>
 
       {/* Right Panel - Messages */}
-      <div className="chat-message-box">
-        {!isConnected ? (
-          <div className="loading-state">
-            <h2>Connecting...</h2>
-            <p>Establishing connection to chat server...</p>
+      <div className={`
+        flex-1 bg-gradient-to-b from-gray-700 to-gray-800 flex-col overflow-hidden
+        ${chatContext.isMobileMenuOpen ? 'hidden' : 'flex'}
+        ${!chatContext.selectedRoomId ? 'hidden md:flex lg:flex' : 'flex'}
+      `}>
+        {!chatContext.isConnected ? (
+          <div className="flex-1 flex items-center justify-center text-center p-4 md:p-5">
+            <div>
+              <div className="animate-spin rounded-full h-8 w-8 md:h-12 md:w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+              <h2 className="text-lg md:text-xl font-semibold text-orange-200 mb-2">Connecting...</h2>
+              <p className="text-sm md:text-base text-orange-300">Establishing connection to chat server...</p>
+            </div>
           </div>
-        ) : activeTab === 'chats' && selectedRoomId && selectedRoom ? (
+        ) : chatContext.activeTab === 'chats' && chatContext.selectedRoomId && chatContext.selectedRoom ? (
           <>
-            <div className="chat-messages-scroll">
-              <h2 className="section-title">
-                {selectedRoomRef?.current?.roomName || receiverRef?.current[0]?.name || 'Loading...'}
-              </h2>
-              <MessageOpenBox messages={messages} />
+            {/* Chat Header */}
+            <div className="flex items-center justify-between p-4 md:p-5 pb-2 md:pb-3 border-b border-orange-700/50">
+              <div className="flex items-center min-w-0 flex-1">
+                <button
+                  className="md:hidden mr-3 p-1 rounded-lg hover:bg-orange-600/20"
+                  onClick={() => chatContext.setSelectedRoomId(null)}
+                >
+                  <svg className="w-5 h-5 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                {/* Chat/Group Name - Always visible */}
+                <h2 className="text-lg md:text-xl font-semibold text-orange-100 truncate">
+                  {actions.getName(chatContext.selectedRoomRef.current)}
+                </h2>
+              </div>
+
+              <div className="flex items-center space-x-2 ml-3">
+                <button
+                  title="Audio Call"
+                  className="p-2 rounded-full hover:bg-orange-600/20 transition"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-7 h-7 text-orange-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                    />
+                  </svg>
+                </button>
+
+                <button
+                  title="Video Call"
+                  className="p-2 rounded-full hover:bg-orange-600/20 transition"
+                  onClick={handleVideoCall}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-7 h-7 text-orange-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6h8a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                  </svg>
+                </button>
+              </div>
+            </div> 
+
+            {/* Messages Area */}
+            <div className="flex-1 flex flex-col overflow-hidden p-4 md:p-5 pt-2 md:pt-3 pb-0">
+              <div className="flex-1 overflow-hidden">
+                <MessageOpenBox
+                  messages={chatContext.messages}
+                  onDeleteMessage={actions.handleDeleteMessage}
+                />
+              </div>
             </div>
 
-            <form className="chat-input-bar" onSubmit={handleSendButton}>
-              <input
-                type="text"
-                placeholder="Enter message here..."
-                value={toSendMessage}
-                onChange={(e) => setToSendMessage(e.target.value)}
-              />
-              <button type="submit" className="send-icon-btn" title="Send">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="#007bff"
-                  height="20"
-                  width="20"
-                  viewBox="0 0 24 24"
+            {/* Message Input */}
+            <div className="p-4 md:p-5 pt-2 md:pt-3">
+              <div className="flex items-center relative">
+                <input
+                  type="text"
+                  placeholder="Enter message here..."
+                  value={chatContext.toSendMessage}
+                  onChange={(e) => chatContext.setToSendMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && actions.handleSendButton(e)}
+                  className="flex-1 py-2 md:py-3 px-3 md:px-4 pr-10 md:pr-12 text-sm md:text-base border border-orange-600 rounded-full outline-none shadow-sm bg-gray-800 text-orange-100 placeholder-orange-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+                <button 
+                  onClick={actions.handleSendButton}
+                  className="absolute right-1 md:right-2 p-1.5 md:p-2 rounded-full hover:bg-orange-600/20 transition-colors duration-200"
+                  title="Send"
                 >
-                  <path d="M0 0h24v24H0z" fill="none" />
-                  <path d="M2 21l21-9L2 3v7l15 2-15 2z" />
-                </svg>
-              </button>
-            </form>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="#f97316"
+                    height="16"
+                    width="16"
+                    viewBox="0 0 24 24"
+                    className="md:w-5 md:h-5 hover:scale-110 transition-transform duration-200"
+                  >
+                    <path d="M0 0h24v24H0z" fill="none" />
+                    <path d="M2 21l21-9L2 3v7l15 2-15 2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </>
         ) : (
-          <div className="empty-chat-state">
-            {activeTab === 'chats' ? (
-              <div className="empty-message-content">
-                <h3>Select a chat to start messaging</h3>
-                <p>Choose from your existing conversations or start a new one</p>
+          <div className="flex-1 flex items-center justify-center text-center p-4 md:p-5">
+            {chatContext.activeTab === 'chats' ? (
+              <div>
+                <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 bg-orange-600/20 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 md:w-12 md:h-12 text-orange-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl md:text-2xl font-semibold text-orange-200 mb-2 md:mb-3">Select a chat to start messaging</h3>
+                <p className="text-orange-300 text-base md:text-lg">Choose from your existing conversations or start a new one</p>
               </div>
-            ) : activeTab === 'contacts' ? (
-              <div className="empty-message-content">
-                <h3>Add New Contacts</h3>
-                <p>Search and add new people to your contact list</p>
+            ) : chatContext.activeTab === 'contacts' ? (
+              <div>
+                <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 bg-orange-600/20 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 md:w-12 md:h-12 text-orange-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A3.004 3.004 0 0 0 16.96 6c-.8 0-1.54.37-2.01.97L12 10.5 9.05 6.97A3.004 3.004 0 0 0 6.04 6c-1.18 0-2.25.66-2.81 1.72L1.5 16H4v6h2v-6h1.5l1.87-5.61L12 14l2.63-3.61L16.5 16H18v6h2z"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl md:text-2xl font-semibold text-orange-200 mb-2 md:mb-3">Add New Contacts</h3>
+                <p className="text-orange-300 text-base md:text-lg">Search and add new people to your contact list</p>
               </div>
             ) : (
-              <div className="empty-message-content">
-                <h3>Create New Group</h3>
-                <p>Start a group conversation with multiple people</p>
+              <div>
+                <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 bg-orange-600/20 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 md:w-12 md:h-12 text-orange-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl md:text-2xl font-semibold text-orange-200 mb-2 md:mb-3">Create New Group</h3>
+                <p className="text-orange-300 text-base md:text-lg">Start a group conversation with multiple people</p>
               </div>
             )}
           </div>
         )}
       </div>
     </div>
-</>
-
-    
-    
   );
 }
 
-
-export const getWebSocket = () => {
-  if(socketRef?.current)return socketRef?.current;
-  return null;
+export const getGlobalSocketRef = () => {
+  return ( socketContext || null );
 };
