@@ -55,7 +55,7 @@ zg.loginRoom(roomID, token, { userID, userName: userID }, { userUpdate: true }).
            const localStream = await zg.createZegoStream();
 
            // Preview the stream and mount the playback component to the page. "local-video" is the id of the <div> element that serves as the component container.
-           localStream.playVideo(document.querySelector("#local-video"));
+           
 
            // Start to publish an audio and video stream to the ZEGOCLOUD audio and video cloud.
            let streamID = new Date().getTime().toString();
