@@ -85,7 +85,7 @@ export const VideoCallComponent = ({ room, onExitCall }) => {
               ref={remoteVideoRef}
               autoPlay
               playsInline
-              muted={true}
+              muted={false}
               className={`w-full h-full object-cover border border-orange-700 ${
                 isRemoteExpanded
                   ? 'rounded-none'
@@ -136,7 +136,7 @@ export const VideoCallComponent = ({ room, onExitCall }) => {
                   <video
                     autoPlay
                     playsInline
-                    muted={true}
+                    muted={false}
                     ref={(el) => {
                       if (el && streamObj?.zegoStream) {
                         el.srcObject = streamObj.zegoStream;
