@@ -38,7 +38,7 @@ export const useZegoCall = ({ userID, userName, room }) => {
           clientRef.current = zg;
         }
 
-        const zg = clientRef.current;
+        const zg = clientRef?.current;
 
         console.log('✅ ZegoExpressEngine instance created');
         console.log('Creating Zego with:', { appID, userID, userName, roomID });
@@ -47,7 +47,7 @@ export const useZegoCall = ({ userID, userName, room }) => {
 
 // In the sample code, streams are published immediately after you successfully log in to a room. When implementing your service, you can choose to publish streams at any time when the room is connected status.
 
-zg.loginRoom(roomID, token, { userID, userName: userID }, { userUpdate: true }).then(async result => {
+const loginInfo = await zg.loginRoom(roomID, token, { userID, userName: userID }, { userUpdate: true }).then(async result => {
      if (result == true) {
         console.log("login success")
         // Create a stream and start the preview.
@@ -63,6 +63,11 @@ zg.loginRoom(roomID, token, { userID, userName: userID }, { userUpdate: true }).
      }
 });
 
+if(loginInfo) {
+  console.log(`loginInfo: ${loginInfo}`);
+} else {
+  console.log(`couldn't login`);
+}
 
 const stream = await zg.createZegoStream({
   camera: {
@@ -76,36 +81,13 @@ const stream = await zg.createZegoStream({
 });
 
 
+if(stream) {
+  setLocalStream(stream);
+  console.log(`localStream: ${stream}`);
+} else {
+  console.log('error while collecting localStream');
+}
 
-
-
-zg.on('roomUserUpdate', (roomID, updateType, userList) => {
-    if (updateType == 'ADD') {
-        for (var i = 0; i < userList.length; i++) {
-            console.log(userList[i]['userID'], 'joins the room:', roomID)
-        }
-    } else if (updateType == 'DELETE') {
-        for (var i = 0; i < userList.length; i++) {
-            console.log(userList[i]['userID'], 'leaves the room:', roomID)
-        }
-    }
-});
-
-zg.on('playerStateUpdate', result => {
-    // Stream playing status update callback
-    var state = result['state']
-    var streamID = result['streamID']
-    var errorCode = result['errorCode']
-    var extendedData = result['extendedData']
-    if (state == 'PLAYING') {
-        console.log('Successfully played an audio and video stream:', streamID);
-    } else if (state == 'NO_PLAY') {
-        console.log('No audio and video stream played');
-    } else if (state == 'PLAY_REQUESTING') {
-        console.log('Requesting to play an audio and video stream:', streamID);
-    }
-    console.log('Error code:', errorCode,' Extra info:', extendedData)
-})
 
 
 // Stream status update callback
