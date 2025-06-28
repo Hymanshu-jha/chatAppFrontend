@@ -10,10 +10,7 @@ export const useZegoCall = ({ userID, userName, room }) => {
 
   const clientRef = useRef(null);
   const [localStream, setLocalStream] = useState(null);
-  const [remoteStream, setRemoteStream] = useState(null);
-
-
-
+  const [remoteStreams, setRemoteStreams] = useState([]);
 
   useEffect(() => {
     if (!roomID || !userID || !userName) {
@@ -22,10 +19,6 @@ export const useZegoCall = ({ userID, userName, room }) => {
     }
 
     const initZego = async () => {
-
-
-
-
       try {
         console.log('🔧 Initializing ZegoEngine...');
         const token = await fetchToken(roomID, userID);
@@ -41,108 +34,115 @@ export const useZegoCall = ({ userID, userName, room }) => {
         const zg = clientRef.current;
 
         console.log('✅ ZegoExpressEngine instance created');
-        console.log('Creating Zego with:', { appID, userID, userName, roomID });
 
+        // Login to the room
+        const loginResult = await zg.loginRoom(
+          roomID,
+          token,
+          {
+            userID,
+            userName
+          }
+        );
 
-
-const loginResult = await zegoEngine.loginRoom(roomID, token, {
-  userID,
-  userName,
-}, { userUpdate: true }).then(() => {
-  // Query existing streams in room
-  const existingStreams = zegoEngine.getRoomStreamList(roomID);
-  existingStreams.forEach((streamInfo) => {
-    zegoEngine.startPlayingStream(streamInfo.streamID);
-  });
-});
-
-
-        if (loginResult === true) {
-          console.log('✅ Login success');
-
-
-
-const stream = await zg.createZegoStream({
-  camera: {
-    video: {
-      width: 1920,
-      height: 1080,
-      frameRate: 30
-    },
-    audio: true
-  }
-});
-
-
-zg.on('roomUserUpdate', (roomID, updateType, userList) => {
-    if (updateType == 'ADD') {
-        for (var i = 0; i < userList.length; i++) {
-            console.log(userList[i]['userID'], 'joins the room:', roomID)
+        if (loginResult !== true) {
+          console.error('❌ Login failed:', loginResult);
+          return;
         }
-    } else if (updateType == 'DELETE') {
-        for (var i = 0; i < userList.length; i++) {
-            console.log(userList[i]['userID'], 'leaves the room:', roomID)
+
+        console.log('✅ Login success');
+
+        // Generate a single streamID to use for publishing
+        const streamID = `${userID}-${Date.now()}`;
+
+        // 1. Create local stream
+        const stream = await zg.createZegoStream({
+          camera: {
+            video: {
+              width: 1280,
+              height: 720,
+              frameRate: 30
+            },
+            audio: true
+          }
+        });
+
+        console.log('🎥 Local stream created', stream);
+
+        setLocalStream({
+          zegoStream: stream,
+          streamID
+        });
+
+        // Publish local stream
+        zg.startPublishingStream(streamID, stream);
+
+        // 2. Fetch existing remote streams for late joiners
+        const existingStreams = await zg.getRoomStreamList(roomID);
+
+        console.log('💻 Existing streams in room:', existingStreams);
+
+        for (const streamInfo of existingStreams) {
+          if (streamInfo.user.userID !== userID) {
+            console.log('Playing existing remote stream:', streamInfo.streamID);
+            const remoteStream = await zg.startPlayingStream(streamInfo.streamID);
+
+            setRemoteStreams((prev) => [
+              ...prev,
+              {
+                streamID: streamInfo.streamID,
+                zegoStream: remoteStream,
+                user: streamInfo.user
+              }
+            ]);
+          }
         }
-    }
-});
 
-zg.on('playerStateUpdate', result => {
-    // Stream playing status update callback
-    var state = result['state']
-    var streamID = result['streamID']
-    var errorCode = result['errorCode']
-    var extendedData = result['extendedData']
-    if (state == 'PLAYING') {
-        console.log('Successfully played an audio and video stream:', streamID);
-    } else if (state == 'NO_PLAY') {
-        console.log('No audio and video stream played');
-    } else if (state == 'PLAY_REQUESTING') {
-        console.log('Requesting to play an audio and video stream:', streamID);
-    }
-    console.log('Error code:', errorCode,' Extra info:', extendedData)
-})
+        // Listen for future stream changes
+        zg.on('roomStreamUpdate', async (roomID, updateType, streamList) => {
+          console.log('🚀 roomStreamUpdate', updateType, streamList);
 
+          if (updateType === 'ADD') {
+            for (const streamInfo of streamList) {
+              if (streamInfo.user.userID !== userID) {
+                const remoteStream = await zg.startPlayingStream(streamInfo.streamID);
+                console.log('✅ New remote stream:', streamInfo.streamID);
 
-// Stream status update callback
-zg.on('roomStreamUpdate', async (roomID, updateType, streamList, extendedData) => {
-    // When `updateType` is set to `ADD`, an audio and video stream is added, and you can call the `startPlayingStream` method to play the stream.
-    if (updateType == 'ADD') {
-        // When streams are added, play them.
-        // For the conciseness of the sample code, only the first stream in the list of newly added audio and video streams is played here. In a real service, it is recommended that you traverse the stream list to play each stream. 
-        
-        // The stream list specified by `streamList` contains the ID of the corresponding stream.
-        const remoteStream2 = await zg.startPlayingStream(streamID);
+                setRemoteStreams((prev) => [
+                  ...prev,
+                  {
+                    streamID: streamInfo.streamID,
+                    zegoStream: remoteStream,
+                    user: streamInfo.user
+                  }
+                ]);
+              }
+            }
+          } else if (updateType === 'DELETE') {
+            for (const streamInfo of streamList) {
+              zg.stopPlayingStream(streamInfo.streamID);
 
+              setRemoteStreams((prev) =>
+                prev.filter((s) => s.streamID !== streamInfo.streamID)
+              );
+            }
+          }
+        });
 
+        zg.on('playerStateUpdate', (result) => {
+          console.log(
+            '🎮 Player state update:',
+            result.state,
+            result.streamID,
+            result.errorCode,
+            result.extendedData
+          );
+        });
 
-        console.log(`remote stream: ${remoteStream2}`);
+        zg.on('roomUserUpdate', (roomID, updateType, userList) => {
+          console.log(`👥 Users ${updateType}:`, userList);
+        });
 
-        setRemoteStream(remoteStream2);
-
-        // Create a media stream player object to play remote media streams.
-        const remoteView = zg.createRemoteStreamView(remoteStream2);
-
-
-  
-
-
-    } else if (updateType == 'DELETE') {
-        // When streams are deleted, stop playing them.
-    }
-});
-
-
-
-
-
-
-          console.log('🎥 Local stream created', stream);
-
-          setLocalStream(stream); // ✅ This triggers a re-render in your component
-
-          const streamID = new Date().getTime().toString();
-          zg.startPublishingStream(streamID, stream);
-        }
       } catch (err) {
         console.error('❌ Failed to initialize Zego:', err);
       }
@@ -152,22 +152,50 @@ zg.on('roomStreamUpdate', async (roomID, updateType, streamList, extendedData) =
 
     return () => {
       if (clientRef.current) {
-        console.log('🧹 Cleaning up ZegoEngine');
+        const zg = clientRef.current;
+
         try {
-          clientRef.current.destroyEngine();
-        } catch (err) {
-          console.error('Cleanup error:', err);
+          if (localStream?.zegoStream) {
+            zg.stopPublishingStream(localStream.streamID);
+            if (zg.destroyStream) {
+              zg.destroyStream(localStream.zegoStream);
+            }
+          }
+        } catch (e) {
+          console.error('Error cleaning up local stream:', e);
         }
+
+        // Stop playing remote streams
+        if (remoteStreams.length > 0) {
+          for (const remote of remoteStreams) {
+            try {
+              zg.stopPlayingStream(remote.streamID);
+              if (zg.destroyStream) {
+                zg.destroyStream(remote.zegoStream);
+              }
+            } catch (e) {
+              console.error('Error cleaning up remote stream:', e);
+            }
+          }
+        }
+
+        try {
+          zg.logoutRoom(roomID);
+        } catch (e) {
+          console.error('Error logging out of room:', e);
+        }
+
+        zg.destroyEngine();
         clientRef.current = null;
       }
     };
   }, [roomID, userID, userName]);
 
-  return { localStream , remoteStream } ;
+  return {
+    localStream,
+    remoteStreams
+  };
 };
-
-
-
 
 async function fetchToken(roomID, userID) {
   try {
