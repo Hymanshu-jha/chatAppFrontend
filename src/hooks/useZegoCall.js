@@ -10,6 +10,7 @@ export const useZegoCall = ({ userID, userName, room }) => {
 
   const clientRef = useRef(null);
   const [localStream, setLocalStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
 
 
 
@@ -102,6 +103,8 @@ zg.on('roomStreamUpdate', async (roomID, updateType, streamList, extendedData) =
 
         console.log(`remote stream: ${remoteStream}`);
 
+        setRemoteStream(remoteStream);
+
         // Create a media stream player object to play remote media streams.
         const remoteView = zg.createRemoteStreamView(remoteStream);
 
@@ -142,7 +145,7 @@ zg.on('roomStreamUpdate', async (roomID, updateType, streamList, extendedData) =
     };
   }, [roomID, userID, userName]);
 
-  return { localStream } ;
+  return { localStream , remoteStream } ;
 };
 
 
