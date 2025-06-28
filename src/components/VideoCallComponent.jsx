@@ -41,7 +41,7 @@ export const VideoCallComponent = ({ room, onExitCall }) => {
       );
     }
 
-    if (remoteStream && remoteVideoRef.current) {
+    if (remoteStream.length > 0 && remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = remoteStream;
       remoteVideoRef.current.play().catch((err) =>
         console.warn('Remote autoplay failed:', err)
@@ -106,62 +106,66 @@ export const VideoCallComponent = ({ room, onExitCall }) => {
         )}
 
         {/* Multiple Remote Streams */}
-        {Array.isArray(zegoService?.remoteStream) &&
-          zegoService.remoteStream.length > 0 && (
-            <div
-              className={`absolute inset-0 grid gap-2 p-2 z-10 ${
-                isRemoteExpanded
-                  ? 'grid-cols-1 h-full'
-                  : zegoService.remoteStream.length === 1
-                  ? 'grid-cols-1 sm:grid-cols-1'
-                  : zegoService.remoteStream.length === 2
-                  ? 'grid-cols-1 sm:grid-cols-2'
-                  : 'grid-cols-2 sm:grid-cols-3'
-              }`}
-            >
-              {zegoService.remoteStream.map((streamObj, index) => (
-                <div
-                  key={streamObj?.streamID || index}
-                  className="relative w-full h-full cursor-pointer rounded-lg overflow-hidden border border-orange-700"
-                  onClick={() => {
-                    setIsRemoteExpanded(!isRemoteExpanded);
-                    if (streamObj?.zegoStream && streamObj?.element) {
-                      streamObj.element.muted = false;
-                      streamObj.element.play().catch((err) =>
-                        console.warn('Remote autoplay failed:', err)
-                      );
-                    }
-                  }}
-                >
-                  <video
-                    autoPlay
-                    playsInline
-                    muted={false}
-                    ref={(el) => {
-                      if (el && streamObj?.zegoStream) {
-                        el.srcObject = streamObj.zegoStream;
-                        streamObj.element = el;
-                        el.play().catch((err) =>
-                          console.warn('Remote autoplay failed:', err)
-                        );
-                      }
-                    }}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-1 left-1 bg-black bg-opacity-70 px-1 py-0.5 rounded text-xs">
-                    User {index + 1}
-                  </div>
-                  <div className="absolute top-1 right-1 bg-black bg-opacity-70 p-1 rounded">
-                    {isRemoteExpanded ? (
-                      <Minimize2 className="w-3 h-3" />
-                    ) : (
-                      <Maximize2 className="w-3 h-3" />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+       {Array.isArray(zegoService?.remoteStream) &&
+  zegoService.remoteStream.length > 0 && (
+    <div
+      className={`absolute inset-0 grid gap-2 p-2 z-10 ${
+        isRemoteExpanded
+          ? 'grid-cols-1 h-full'
+          : zegoService.remoteStream.length === 1
+          ? 'grid-cols-1 sm:grid-cols-1'
+          : zegoService.remoteStream.length === 2
+          ? 'grid-cols-1 sm:grid-cols-2'
+          : 'grid-cols-2 sm:grid-cols-3'
+      }`}
+    >
+      {zegoService.remoteStream.map((streamObj, index) => (
+        <div
+          key={streamObj?.streamID || index}
+          className="relative w-full h-full cursor-pointer rounded-lg overflow-hidden border border-orange-700"
+          onClick={() => {
+            setIsRemoteExpanded(!isRemoteExpanded);
+            if (streamObj?.element) {
+              streamObj.element.muted = false;
+              streamObj.element
+                .play()
+                .catch((err) =>
+                  console.warn('Remote autoplay failed:', err)
+                );
+            }
+          }}
+        >
+          <video
+            autoPlay
+            playsInline
+            muted={false}
+            ref={(el) => {
+              if (el && streamObj?.stream) {
+                el.srcObject = streamObj.stream;
+                streamObj.element = el;
+                el
+                  .play()
+                  .catch((err) =>
+                    console.warn('Remote autoplay failed:', err)
+                  );
+              }
+            }}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute top-1 left-1 bg-black bg-opacity-70 px-1 py-0.5 rounded text-xs">
+            User {index + 1}
+          </div>
+          <div className="absolute top-1 right-1 bg-black bg-opacity-70 p-1 rounded">
+            {isRemoteExpanded ? (
+              <Minimize2 className="w-3 h-3" />
+            ) : (
+              <Maximize2 className="w-3 h-3" />
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
 
         {/* Placeholder when no remote */}
         {(!zegoService?.remoteStream ||
