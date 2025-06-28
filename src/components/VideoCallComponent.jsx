@@ -86,10 +86,10 @@ export const VideoCallComponent = ({ room, onExitCall }) => {
               autoPlay
               playsInline
               muted={false}
-              className={`w-full h-full object-cover border border-orange-700 ${
+              className={`border border-orange-700 ${
                 isRemoteExpanded
-                  ? 'rounded-none'
-                  : 'rounded-lg max-h-[50vh] sm:max-h-[50vh]'
+                  ? 'w-full h-full object-cover rounded-none'
+                  : 'w-full h-full sm:w-1/2 sm:h-1/2 object-cover rounded-lg max-h-[50vh] sm:max-h-[50vh]'
               }`}
             />
             <div className="absolute top-2 left-2 bg-black bg-opacity-70 px-2 py-1 rounded text-xs">
