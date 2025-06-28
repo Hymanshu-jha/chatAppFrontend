@@ -45,20 +45,18 @@ export const useZegoCall = ({ userID, userName, room }) => {
 
 
 
-const loginResult = await zegoEngine.loginRoom(roomID, token, {
-  userID,
-  userName,
-}, { userUpdate: true }).then(() => {
-  // Query existing streams in room
-  const existingStreams = zegoEngine.getRoomStreamList(roomID);
-  existingStreams.forEach((streamInfo) => {
-    zegoEngine.startPlayingStream(streamInfo.streamID);
-  });
-});
+const { streamList } = await zg.loginRoom(roomID, token, { userID, userName });
+
+// Play existing streams already in the room
+for (const stream of streamList) {
+  const remoteStream = await zg.startPlayingStream(stream.streamID);
+  const remoteView = zg.createRemoteStreamView(remoteStream);
+  remoteView.play("remote-video");
+}
 
 
-        if (loginResult === true) {
-          console.log('✅ Login success');
+
+
 
 
 
@@ -103,35 +101,18 @@ zg.on('playerStateUpdate', result => {
 })
 
 
-// Stream status update callback
-zg.on('roomStreamUpdate', async (roomID, updateType, streamList, extendedData) => {
-    // When `updateType` is set to `ADD`, an audio and video stream is added, and you can call the `startPlayingStream` method to play the stream.
-    if (updateType == 'ADD') {
-        // When streams are added, play them.
-        // For the conciseness of the sample code, only the first stream in the list of newly added audio and video streams is played here. In a real service, it is recommended that you traverse the stream list to play each stream. 
-        
-        // The stream list specified by `streamList` contains the ID of the corresponding stream.
-        const remoteStream2 = await zg.startPlayingStream(streamID);
-
-
-
-        console.log(`remote stream: ${remoteStream2}`);
-
-        setRemoteStream(remoteStream2);
-
-        // Create a media stream player object to play remote media streams.
-        const remoteView = zg.createRemoteStreamView(remoteStream2);
-
-
-  
-
-
-    } else if (updateType == 'DELETE') {
-        // When streams are deleted, stop playing them.
+// Then listen for new streams
+zg.on('roomStreamUpdate', async (roomID, updateType, streamList) => {
+  if (updateType === 'ADD') {
+    for (const stream of streamList) {
+      const remoteStream = await zg.startPlayingStream(stream.streamID);
+      const remoteView = zg.createRemoteStreamView(remoteStream);
+      remoteView.play("remote-video");
     }
+  } else if (updateType === 'DELETE') {
+    // stop playing streams
+  }
 });
-
-
 
 
 
