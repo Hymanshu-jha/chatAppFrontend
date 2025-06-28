@@ -106,8 +106,7 @@ zg.on('roomStreamUpdate', async (roomID, updateType, streamList) => {
   if (updateType === 'ADD') {
     for (const stream of streamList) {
       const remoteStream = await zg.startPlayingStream(stream.streamID);
-      const remoteView = zg.createRemoteStreamView(remoteStream);
-      remoteView.play("remote-video");
+      setRemoteStream(remoteStream);
     }
   } else if (updateType === 'DELETE') {
     // stop playing streams
