@@ -62,17 +62,6 @@ zg.loginRoom(roomID, token, { userID, userName: userID }, { userUpdate: true }).
            zg.startPublishingStream(streamID, localStream)
      }
 });
-// Play existing streams already in the room
-for (const stream of streamList) {
-  const remoteStream = await zg.startPlayingStream(stream.streamID);
-  const remoteView = zg.createRemoteStreamView(remoteStream);
-  remoteView.play("remote-video");
-}
-
-
-
-
-
 
 
 const stream = await zg.createZegoStream({
@@ -85,6 +74,9 @@ const stream = await zg.createZegoStream({
     audio: true
   }
 });
+
+
+
 
 
 zg.on('roomUserUpdate', (roomID, updateType, userList) => {
