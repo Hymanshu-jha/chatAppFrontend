@@ -45,8 +45,23 @@ export const useZegoCall = ({ userID, userName, room }) => {
 
 
 
-const { streamList } = await zg.loginRoom(roomID, token, { userID, userName });
+// In the sample code, streams are published immediately after you successfully log in to a room. When implementing your service, you can choose to publish streams at any time when the room is connected status.
 
+zg.loginRoom(roomID, token, { userID, userName: userID }, { userUpdate: true }).then(async result => {
+     if (result == true) {
+        console.log("login success")
+        // Create a stream and start the preview.
+           // After calling the `createZegoStream` method, you cannot perform subsequent operations until the ZEGOCLOUD server returns a streaming media object.
+           const localStream = await zg.createZegoStream();
+
+           // Preview the stream and mount the playback component to the page. "local-video" is the id of the <div> element that serves as the component container.
+           localStream.playVideo(document.querySelector("#local-video"));
+
+           // Start to publish an audio and video stream to the ZEGOCLOUD audio and video cloud.
+           let streamID = new Date().getTime().toString();
+           zg.startPublishingStream(streamID, localStream)
+     }
+});
 // Play existing streams already in the room
 for (const stream of streamList) {
   const remoteStream = await zg.startPlayingStream(stream.streamID);
@@ -101,16 +116,21 @@ zg.on('playerStateUpdate', result => {
 })
 
 
-// Then listen for new streams
-zg.on('roomStreamUpdate', async (roomID, updateType, streamList) => {
-  if (updateType === 'ADD') {
-    for (const stream of streamList) {
-      const remoteStream = await zg.startPlayingStream(stream.streamID);
-      setRemoteStream(remoteStream);
+// Stream status update callback
+zg.on('roomStreamUpdate', async (roomID, updateType, streamList, extendedData) => {
+    // When `updateType` is set to `ADD`, an audio and video stream is added, and you can call the `startPlayingStream` method to play the stream.
+    if (updateType == 'ADD') {
+        // When streams are added, play them.
+        // For the conciseness of the sample code, only the first stream in the list of newly added audio and video streams is played here. In a real service, it is recommended that you traverse the stream list to play each stream. 
+        const streamID = streamList[0].streamID;
+        // The stream list specified by `streamList` contains the ID of the corresponding stream.
+        const remoteStream = await zg.startPlayingStream(streamID);
+
+        setRemoteStream(remoteStream);
+
+    } else if (updateType == 'DELETE') {
+        // When streams are deleted, stop playing them.
     }
-  } else if (updateType === 'DELETE') {
-    // stop playing streams
-  }
 });
 
 
