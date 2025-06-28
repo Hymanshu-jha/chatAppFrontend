@@ -116,13 +116,7 @@ zg.on('roomStreamUpdate', async (roomID, updateType, streamList) => {
 
 
 
-          console.log('🎥 Local stream created', stream);
 
-          setLocalStream(stream); // ✅ This triggers a re-render in your component
-
-          const streamID = new Date().getTime().toString();
-          zg.startPublishingStream(streamID, stream);
-        }
       } catch (err) {
         console.error('❌ Failed to initialize Zego:', err);
       }
