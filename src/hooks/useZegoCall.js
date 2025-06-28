@@ -109,21 +109,21 @@ zg.on('roomStreamUpdate', async (roomID, updateType, streamList, extendedData) =
     if (updateType == 'ADD') {
         // When streams are added, play them.
         // For the conciseness of the sample code, only the first stream in the list of newly added audio and video streams is played here. In a real service, it is recommended that you traverse the stream list to play each stream. 
-        const streamID = streamList[0].streamID;
+        
         // The stream list specified by `streamList` contains the ID of the corresponding stream.
-        const remoteStream = await zg.startPlayingStream(streamID);
+        const remoteStream2 = await zg.startPlayingStream(streamID);
 
-        console.log(`remote stream: ${remoteStream}`);
 
-        setRemoteStream(remoteStream);
+
+        console.log(`remote stream: ${remoteStream2}`);
+
+        setRemoteStream(remoteStream2);
 
         // Create a media stream player object to play remote media streams.
-        const remoteView = zg.createRemoteStreamView(remoteStream);
+        const remoteView = zg.createRemoteStreamView(remoteStream2);
 
 
-    streamList.forEach(stream => {
-      zegoEngine.startPlayingStream(stream.streamID);
-    });
+  
 
 
     } else if (updateType == 'DELETE') {
