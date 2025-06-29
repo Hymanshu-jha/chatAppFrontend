@@ -60,65 +60,77 @@ export const Navbar = () => {
   }
 
   return (
-    <nav className="bg-gray-950 shadow-lg border-b border-gray-800 sticky top-0 z-50">
+    <nav className="bg-black shadow-xl border-b border-gray-800 sticky top-0 z-50 rounded-b-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <ul className="flex space-x-8">
-            <NavLink 
-              to="/" 
-              className={({ isActive }) => 
-                `flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive 
-                    ? 'text-orange-500 bg-gray-800' 
-                    : 'text-gray-300 hover:text-orange-500 hover:bg-gray-800'
-                }`
-              }
-            >
-              <AiOutlineHome className="w-10 h-10 mr-2" />
-              Home
-            </NavLink>
-            <NavLink 
-              to="/chatpage" 
-              className={({ isActive }) => 
-                `flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive 
-                    ? 'text-orange-500 bg-gray-800' 
-                    : 'text-gray-300 hover:text-orange-500 hover:bg-gray-800'
-                }`
-              }
-            >
-              <FaComments className="w-10 h-10 mr-2" />
-              ChatPage
-            </NavLink>
+        <div className="flex flex-col sm:flex-row justify-between items-center py-3 sm:py-4 gap-3 sm:gap-0">
+          {/* Navigation Links */}
+          <ul className="flex flex-row gap-4 sm:gap-7 items-center p-0 m-0">
+            <li>
+              <NavLink 
+                to="/" 
+                className={({ isActive }) => 
+                  `flex items-center px-3 py-2 sm:px-5 sm:py-3 rounded-lg font-semibold transition-all duration-300 ease-in-out transform select-none cursor-pointer ${
+                    isActive 
+                      ? 'bg-green-600 text-white shadow-lg shadow-green-500/50 scale-105' 
+                      : 'text-gray-300 hover:bg-green-700 hover:text-white hover:scale-105'
+                  }`
+                }
+              >
+                <AiOutlineHome className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
+                <span className="text-sm sm:text-base">Home</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/chatpage" 
+                className={({ isActive }) => 
+                  `flex items-center px-3 py-2 sm:px-5 sm:py-3 rounded-lg font-semibold transition-all duration-300 ease-in-out transform select-none cursor-pointer ${
+                    isActive 
+                      ? 'bg-green-600 text-white shadow-lg shadow-green-500/50 scale-105' 
+                      : 'text-gray-300 hover:bg-green-700 hover:text-white hover:scale-105'
+                  }`
+                }
+              >
+                <FaComments className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
+                <span className="text-sm sm:text-base">ChatPage</span>
+              </NavLink>
+            </li>
           </ul>
 
+          {/* Authentication Links */}
           {isLoggedIn ? (
-            <ul className="flex">
-              <NavLink 
-                to="#" 
-                onClick={handleClickLogout} 
-                className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-red-400 hover:text-red-300 hover:bg-gray-800 transition-colors"
-              >
-                <AiOutlineLogout className="w-10 h-10 mr-2" />
-                Logout
-              </NavLink>
+            <ul className="flex items-center p-0 m-0">
+              <li>
+                <NavLink 
+                  to="#" 
+                  onClick={handleClickLogout} 
+                  className="flex items-center px-3 py-2 sm:px-5 sm:py-3 rounded-lg font-semibold text-white bg-red-600 hover:bg-red-700 hover:scale-110 transition-all duration-300 ease-in-out transform select-none cursor-pointer"
+                >
+                  <AiOutlineLogout className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
+                  <span className="text-sm sm:text-base">Logout</span>
+                </NavLink>
+              </li>
             </ul>
           ) : (
-            <ul className="flex space-x-4">
-              <NavLink 
-                to="/register" 
-                className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-orange-500 hover:bg-gray-800 transition-colors"
-              >
-                <AiOutlineUserAdd className="w-5 h-5 mr-2" />
-                Register
-              </NavLink>
-              <NavLink 
-                to="/login" 
-                className="flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 transition-colors"
-              >
-                <AiOutlineLogin className="w-5 h-5 mr-2" />
-                Login
-              </NavLink>
+            <ul className="flex gap-3 sm:gap-4 items-center p-0 m-0">
+              <li>
+                <NavLink 
+                  to="/register" 
+                  className="flex items-center px-3 py-2 sm:px-5 sm:py-3 rounded-lg font-semibold text-white bg-green-600 hover:bg-green-700 hover:scale-105 transition-all duration-300 ease-in-out transform select-none cursor-pointer"
+                >
+                  <AiOutlineUserAdd className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <span className="text-sm sm:text-base">Register</span>
+                </NavLink>
+              </li>
+              <li>
+                <NavLink 
+                  to="/login" 
+                  className="flex items-center px-3 py-2 sm:px-5 sm:py-3 rounded-lg font-semibold text-white bg-orange-600 hover:bg-orange-700 hover:scale-105 transition-all duration-300 ease-in-out transform select-none cursor-pointer"
+                >
+                  <AiOutlineLogin className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <span className="text-sm sm:text-base">Login</span>
+                </NavLink>
+              </li>
             </ul>
           )}
         </div>
