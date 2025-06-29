@@ -1,15 +1,22 @@
 /* LoadingPage.css */
 
 .loading-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #2a2929;
+  color: #198dc7;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  background-color: #2a2929; /* black background */
-  color: #198dc7; /* bright blue text */
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  z-index: 9999; /* ensure it's on top */
+  overflow: hidden;
 }
+
 
 .spinner {
   border: 8px solid #000000;
