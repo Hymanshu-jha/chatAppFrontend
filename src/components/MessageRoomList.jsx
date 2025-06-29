@@ -6,9 +6,11 @@ export const MessageRoomList = ({ rooms, setRoomId, selectedRoomId }) => {
   const { user } = useSelector((state) => state.auth);
 
   const getName = (room) => {
+      const members = room?.members;
+    if (!members || members.length < 2) return 'Unknown Room';
     if (room?.isGroup) return room?.roomName;
     const [member1, member2] = room?.members;
-    return user?.emailid === member1?.emailid ? member2.name : member1.name;
+    return user?.emailid === member1?.emailid ? member2?.name : member1?.name;
   };
 
   const getStatus = (room) => {
@@ -35,6 +37,7 @@ export const MessageRoomList = ({ rooms, setRoomId, selectedRoomId }) => {
         {rooms.map((room) => {
           const isSelected = selectedRoomId === room._id;
           const status = getStatus(room);
+
 
           return (
             <div
