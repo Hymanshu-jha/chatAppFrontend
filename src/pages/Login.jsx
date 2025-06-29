@@ -23,7 +23,9 @@ const Login = () => {
     const dispatch = useDispatch();
 
     const location = useLocation();
-    const message = location.state?.message || null;
+    
+
+    const message = location.state?.message || "";
     
     const navigate = useNavigate();
 
@@ -80,11 +82,12 @@ const Login = () => {
     <button type="submit">Login</button>
   </form>
 
-  {message && (
-    <div className="auth-message success">
-      <i className="fas fa-info-circle"></i> You are already registered: {message.message}
-    </div>
-  )}
+{message && (
+  <div className="mt-8 mb-4 rounded-md border border-green-300 bg-green-50 px-4 py-3 text-red-700 text-xl font-bold">
+    {message}
+  </div>
+)}
+
 </div>
 
 
