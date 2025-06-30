@@ -28,14 +28,14 @@ export default function Home() {
           <div className="mb-6">
             <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-orange-500/20 to-amber-500/20 text-orange-300 border border-orange-500/30 backdrop-blur-sm">
               <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse" aria-hidden="true"></span>
-              AI-Powered Productivity Platform
+              AI-Powered Communication Platform
             </span>
           </div>
           
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white mb-6 lg:mb-8 leading-tight tracking-tight">
             Master Your
             <span className="block bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 bg-clip-text text-transparent drop-shadow-lg">
-              Workflow
+              Communication
             </span>
             <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent">
               Like Never Before
@@ -43,17 +43,17 @@ export default function Home() {
           </h1>
           
           <p className="text-lg sm:text-xl lg:text-2xl text-gray-300 mb-8 lg:mb-12 leading-relaxed max-w-4xl mx-auto font-light">
-            Transform chaos into clarity with intelligent kanban boards, AI-powered task creation, and seamless project management that adapts to your workflow.
+            Transform conversations into insights with intelligent chat systems, AI-powered video analysis, and comprehensive analytics that adapt to your communication needs.
           </p>
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center items-center">
             <button 
               className="group relative px-8 lg:px-12 py-4 lg:py-5 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 text-black rounded-2xl font-bold text-base lg:text-lg shadow-2xl hover:shadow-orange-500/30 transition-all duration-300 transform hover:scale-105 hover:from-orange-500 hover:to-amber-400 w-full sm:w-auto focus:outline-none focus:ring-4 focus:ring-orange-500/50"
-              aria-label="Start building your workflow"
+              aria-label="Start your communication journey"
             >
               <span className="relative z-10 flex items-center justify-center">
-                Start Building
+                Start Chatting
                 <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -97,28 +97,29 @@ export default function Home() {
                   <div className="w-6 h-6 bg-gradient-to-r from-orange-400 to-amber-400 rounded-lg" aria-hidden="true"></div>
                 </div>
                 
-                {/* Kanban columns simulation */}
-                <div className="grid grid-cols-3 gap-2 flex-1" aria-hidden="true">
-                  <div className="bg-gray-800/50 rounded-lg p-2">
-                    <div className="w-full h-2 bg-orange-500/30 rounded mb-2"></div>
-                    <div className="space-y-1">
-                      <div className="w-full h-3 bg-gray-700/50 rounded"></div>
-                      <div className="w-3/4 h-3 bg-gray-700/50 rounded"></div>
+                {/* Chat interface simulation */}
+                <div className="flex-1 space-y-3" aria-hidden="true">
+                  <div className="flex justify-start">
+                    <div className="bg-gray-800/50 rounded-2xl rounded-bl-sm p-2 max-w-[70%]">
+                      <div className="w-full h-2 bg-gray-700/50 rounded mb-1"></div>
+                      <div className="w-3/4 h-2 bg-gray-700/50 rounded"></div>
                     </div>
                   </div>
-                  <div className="bg-gray-800/50 rounded-lg p-2">
-                    <div className="w-full h-2 bg-green-500/30 rounded mb-2"></div>
-                    <div className="space-y-1">
-                      <div className="w-full h-3 bg-gray-700/50 rounded"></div>
-                      <div className="w-2/3 h-3 bg-gray-700/50 rounded"></div>
-                      <div className="w-4/5 h-3 bg-gray-700/50 rounded"></div>
+                  <div className="flex justify-end">
+                    <div className="bg-orange-600/30 rounded-2xl rounded-br-sm p-2 max-w-[70%]">
+                      <div className="w-full h-2 bg-orange-400/50 rounded mb-1"></div>
+                      <div className="w-2/3 h-2 bg-orange-400/50 rounded"></div>
                     </div>
                   </div>
-                  <div className="bg-gray-800/50 rounded-lg p-2">
-                    <div className="w-full h-2 bg-amber-500/30 rounded mb-2"></div>
-                    <div className="space-y-1">
-                      <div className="w-full h-3 bg-gray-700/50 rounded"></div>
+                  <div className="flex justify-start">
+                    <div className="bg-gray-800/50 rounded-2xl rounded-bl-sm p-2 max-w-[70%]">
+                      <div className="w-4/5 h-2 bg-gray-700/50 rounded"></div>
                     </div>
+                  </div>
+                  {/* Video preview mock */}
+                  <div className="bg-green-600/20 rounded-lg p-2 border border-green-500/30">
+                    <div className="w-full h-3 bg-green-400/30 rounded mb-1"></div>
+                    <div className="w-1/2 h-2 bg-green-400/20 rounded"></div>
                   </div>
                 </div>
               </div>
@@ -127,38 +128,27 @@ export default function Home() {
         </section>
 
         {/* Feature Cards */}
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8 max-w-7xl mx-auto" aria-label="Key features">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto" aria-label="Key features">
           <FeatureCard
             icon={
               <svg className="w-7 h-7 lg:w-8 lg:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             }
-            title="Smart Kanban"
-            description="Intelligent boards that adapt to your workflow with AI-powered organization and automated task routing."
+            title="Smart Chat"
+            description="Intelligent conversations with AI-powered responses, context awareness, and seamless multi-platform integration for enhanced communication."
             colorScheme="orange"
           />
 
           <FeatureCard
             icon={
               <svg className="w-7 h-7 lg:w-8 lg:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
             }
-            title="AI Subtasks"
-            description="Let AI break down complex projects into manageable subtasks with intelligent prioritization and scheduling."
+            title="AI Video Summary"
+            description="Transform lengthy videos into concise, actionable summaries with AI-powered analysis and key insight extraction."
             colorScheme="green"
-          />
-
-          <FeatureCard
-            icon={
-              <svg className="w-7 h-7 lg:w-8 lg:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
-              </svg>
-            }
-            title="Team Sync"
-            description="Real-time collaboration with seamless team synchronization and intelligent conflict resolution."
-            colorScheme="amber"
           />
 
           <FeatureCard
@@ -167,8 +157,8 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             }
-            title="Analytics"
-            description="Deep insights into productivity patterns with AI-driven recommendations for workflow optimization."
+            title="Advanced Analytics"
+            description="Deep insights into communication patterns with AI-driven recommendations for engagement optimization and performance tracking."
             colorScheme="teal"
           />
         </section>
@@ -176,10 +166,10 @@ export default function Home() {
         {/* Bottom CTA Section */}
         <section className="mt-16 lg:mt-24 text-center max-w-4xl">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
-            Ready to <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">Transform</span> Your Productivity?
+            Ready to <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">Transform</span> Your Communication?
           </h2>
           <p className="text-gray-400 mb-8 text-lg">
-            Join thousands of teams already using our AI-powered platform to achieve more.
+            Join thousands of users already using our AI-powered platform to communicate smarter.
           </p>
           <button 
             className="group relative px-10 py-4 bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 text-white rounded-2xl font-bold text-lg shadow-2xl hover:shadow-green-500/30 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-500/50"

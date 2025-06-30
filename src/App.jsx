@@ -1,6 +1,5 @@
 import './App.css'
-import { useEffect } from 'react';
-import { Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet, Link } from "react-router-dom";
 
 
 import Register from './pages/Register';
@@ -18,36 +17,32 @@ import { Navbar } from './components/Navbar';
 
 
 function App() {
-
-
   return (
     <>
-       <Navbar />
-      
-       <Routes>
-          <Route path='/' element={<Home />} />
-          <Route path='/register' element={<Register />} />
-          <Route path='/login' element={<Login />} />
-          <Route path='/errorpage' element={<Error />} />
-          <Route path='/loadingpage' element={<LoadingPage />} />
-          {/* <Route path='/kanban' element={<Kanban />} /> */}
-     
+      <Navbar />
 
-         {/* Protect this route */}
-          <Route
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/errorpage" element={<Error />} />
+        <Route path="/loadingpage" element={<LoadingPage />} />
+        {/* Remove old single route */}
+        {/* <Route path="/chatpage" element={ <ProtectedRoute><ChatPage /></ProtectedRoute> } /> */}
+
+        {/* Protect parent route */}
+        <Route
           path="/chatpage"
           element={
-           <ProtectedRoute>
-             <ChatPage />
-           </ProtectedRoute>
-                  }
-        />
-       </Routes>
-
-      
-
+            <ProtectedRoute>
+              <ChatPage />
+            </ProtectedRoute>
+          }
+        >
+        </Route>
+      </Routes>
     </>
-  )
+  );
 }
 
 export default App
