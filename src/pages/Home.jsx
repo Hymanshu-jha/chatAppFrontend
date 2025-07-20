@@ -1,4 +1,6 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
+import Register from './Register';
 
 export default function Home() {
   return (
@@ -48,7 +50,8 @@ export default function Home() {
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center items-center">
-            <button 
+            <NavLink 
+            to='/register'
               className="group relative px-8 lg:px-12 py-4 lg:py-5 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 text-black rounded-2xl font-bold text-base lg:text-lg shadow-2xl hover:shadow-orange-500/30 transition-all duration-300 transform hover:scale-105 hover:from-orange-500 hover:to-amber-400 w-full sm:w-auto focus:outline-none focus:ring-4 focus:ring-orange-500/50"
               aria-label="Start your communication journey"
             >
@@ -59,7 +62,7 @@ export default function Home() {
                 </svg>
               </span>
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm" aria-hidden="true"></div>
-            </button>
+            </NavLink>
             
             <button 
               className="group relative px-8 lg:px-12 py-4 lg:py-5 border-2 border-green-500/50 text-green-300 rounded-2xl font-semibold text-base lg:text-lg hover:bg-green-500/10 hover:border-green-400 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/20 backdrop-blur-sm w-full sm:w-auto focus:outline-none focus:ring-4 focus:ring-green-500/50"
